@@ -148,24 +148,50 @@ if run_button:
 
     metrics_df = df[available_metrics_columns].copy()
 
+    percentage_columns = [
+        "revenue_growth",
+        "profit_margin",
+        "volatility"
+    ]
+
+    for col in percentage_columns:
+        if col in metrics_df.columns:
+            metrics_df[col] = metrics_df[col] * 100
+
+    metrics_df = metrics_df.rename(columns={
+        "ticker": "Ticker",
+        "pe_ratio": "P/E Ratio",
+        "revenue_growth": "Revenue Growth (%)",
+        "profit_margin": "Profit Margin (%)",
+        "volatility": "Volatility (%)",
+        "debt_to_equity": "Debt to Equity (%)",
+    })
+
     metrics_long = metrics_df.melt(
-        id_vars="ticker",
+        id_vars="Ticker",
         var_name="Metric",
         value_name="Value"
     )
 
+    metrics_long["Value"] = metrics_long["Value"].round(2)
+
     fig_metrics = px.bar(
         metrics_long,
-        x="ticker",
+        x="Ticker",
         y="Value",
         color="Metric",
         barmode="group",
         title="Financial Metrics by Company"
     )
 
+    fig_metrics.update_traces(
+        textposition="outside"
+    )
+
     fig_metrics.update_layout(
         yaxis_title="Metric Value",
-        xaxis_title="Company"
+        xaxis_title="Company",
+        legend_title="Metric"
     )
 
     st.plotly_chart(fig_metrics, use_container_width=True)
