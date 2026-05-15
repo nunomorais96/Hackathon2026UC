@@ -64,6 +64,7 @@ def add_risk_analysis(df):
 
     for _, row in df.iterrows():
         row_dict = row.to_dict()
+
         score = calculate_risk_score(row_dict)
         label = classify_risk(score)
         explanation = explain_risk(row_dict, score)

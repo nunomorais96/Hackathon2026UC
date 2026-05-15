@@ -2,10 +2,6 @@ import yfinance as yf
 
 
 def search_companies(query, max_results=5):
-    """
-    Search companies/stocks using Yahoo Finance via yfinance.
-    Returns a list of possible matches.
-    """
     try:
         search = yf.Search(query, max_results=max_results)
         quotes = search.quotes or []
@@ -38,9 +34,6 @@ def search_companies(query, max_results=5):
 
 
 def resolve_company_to_ticker(company_name):
-    """
-    Returns the best ticker match for a company name.
-    """
     results = search_companies(company_name, max_results=5)
 
     valid_results = [
@@ -55,23 +48,14 @@ def resolve_company_to_ticker(company_name):
 
 
 def resolve_companies_to_tickers(company_names):
-    """
-    Converts a list of company names into ticker symbols.
-    """
     resolved = []
 
     for company in company_names:
         ticker = resolve_company_to_ticker(company.strip())
 
-        if ticker:
-            resolved.append({
-                "input": company,
-                "ticker": ticker
-            })
-        else:
-            resolved.append({
-                "input": company,
-                "ticker": None
-            })
+        resolved.append({
+            "input": company,
+            "ticker": ticker
+        })
 
     return resolved

@@ -14,13 +14,13 @@ AlphaLens addresses this by using multiple AI agents to analyze public financial
 
 The user provides:
 
-- Stock tickers
+- Company names or stock tickers
 - Risk profile
 - Investment horizon
 
 Example:
 
 ```text
-NVDA, AMD, PLTR, AMZN
+Nvidia, AMD, Palantir, Amazon
 Moderate-Aggressive
 5 years

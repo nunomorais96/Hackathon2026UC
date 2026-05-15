@@ -2,6 +2,7 @@ import streamlit as st
 import plotly.express as px
 from dotenv import load_dotenv
 
+from search_service import resolve_companies_to_tickers
 from finance_service import get_stock_data
 from risk_service import add_risk_analysis
 from agents import financial_agent, sentiment_agent, risk_agent, report_agent
@@ -25,9 +26,9 @@ st.warning(
 with st.sidebar:
     st.header("Input")
 
-    tickers_input = st.text_input(
-        "Stock tickers",
-        value="NVDA, AMD, PLTR, AMZN"
+    companies_input = st.text_input(
+        "Companies or stock tickers",
+        value="Nvidia, AMD, Palantir, Amazon"
     )
 
     risk_profile = st.selectbox(
@@ -45,14 +46,34 @@ with st.sidebar:
     run_button = st.button("Generate Investment Brief")
 
 if run_button:
+    companies = [
+        company.strip()
+        for company in companies_input.split(",")
+        if company.strip()
+    ]
+
+    if not companies:
+        st.error("Please enter at least one company or ticker.")
+        st.stop()
+
+    with st.spinner("Search Agent is resolving company names into stock tickers..."):
+        resolved_companies = resolve_companies_to_tickers(companies)
+
+    st.header("0. Search Agent — Resolved Companies")
+
+    st.dataframe(
+        resolved_companies,
+        use_container_width=True
+    )
+
     tickers = [
-        ticker.strip().upper()
-        for ticker in tickers_input.split(",")
-        if ticker.strip()
+        item["ticker"]
+        for item in resolved_companies
+        if item["ticker"]
     ]
 
     if not tickers:
-        st.error("Please enter at least one ticker.")
+        st.error("No valid tickers found. Try using known company names or stock symbols.")
         st.stop()
 
     with st.spinner("Financial Data Agent is collecting public market data..."):
@@ -65,21 +86,23 @@ if run_button:
 
     st.header("1. Company Comparison")
 
+    display_columns = [
+        "ticker",
+        "company_name",
+        "sector",
+        "current_price",
+        "market_cap",
+        "pe_ratio",
+        "revenue_growth",
+        "volatility",
+        "risk_score",
+        "risk_level",
+    ]
+
+    available_columns = [col for col in display_columns if col in df.columns]
+
     st.dataframe(
-        df[
-            [
-                "ticker",
-                "company_name",
-                "sector",
-                "current_price",
-                "market_cap",
-                "pe_ratio",
-                "revenue_growth",
-                "volatility",
-                "risk_score",
-                "risk_level",
-            ]
-        ],
+        df[available_columns],
         use_container_width=True
     )
 
@@ -151,4 +174,4 @@ if run_button:
     )
 
 else:
-    st.info("Enter tickers in the sidebar and click Generate Investment Brief.")
+    st.info("Enter company names or tickers in the sidebar and click Generate Investment Brief.")

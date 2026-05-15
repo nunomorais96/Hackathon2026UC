@@ -1,20 +1,29 @@
-def generate_markdown_report(df, financial_summary, sentiment_summary, risk_summary, final_report):
+def generate_markdown_report(
+    df,
+    financial_summary,
+    sentiment_summary,
+    risk_summary,
+    final_report
+):
     markdown = "# AlphaLens Investment Research Brief\n\n"
 
     markdown += "## Company Comparison\n\n"
-    markdown += df[
-        [
-            "ticker",
-            "company_name",
-            "sector",
-            "current_price",
-            "pe_ratio",
-            "revenue_growth",
-            "volatility",
-            "risk_score",
-            "risk_level",
-        ]
-    ].to_markdown(index=False)
+
+    columns = [
+        "ticker",
+        "company_name",
+        "sector",
+        "current_price",
+        "pe_ratio",
+        "revenue_growth",
+        "volatility",
+        "risk_score",
+        "risk_level",
+    ]
+
+    available_columns = [col for col in columns if col in df.columns]
+
+    markdown += df[available_columns].to_markdown(index=False)
 
     markdown += "\n\n## Financial Agent Summary\n\n"
     markdown += financial_summary
