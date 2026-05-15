@@ -9,3 +9,14 @@
 | `report_service.py`  | Markdown Report        | Gera relatório Markdown como fallback ou export textual                                                                           |
 | `.env`               | Configuração local     | Guarda API keys localmente                                                                                                        |
 | `.gitignore`         | Segurança              | Impede upload de secrets e ficheiros temporários para GitHub                                                                      |
+
+
+
+
+| Agent                  | Responsabilidade              | Input                           | Output                              |
+| ---------------------- | ----------------------------- | ------------------------------- | ----------------------------------- |
+| Search Agent           | Resolver nomes para tickers   | “Nvidia, Amazon”                | `NVDA`, `AMZN`                      |
+| Financial Data Agent   | Analisar métricas financeiras | Dados públicos do Yahoo Finance | Strengths, weaknesses, observations |
+| News & Sentiment Agent | Avaliar drivers de mercado    | Lista de tickers                | Catalysts, risks, sentiment drivers |
+| Risk Agent             | Explicar risco                | Risk score + métricas           | Explicação do risco e concentração  |
+| Report Generator Agent | Consolidar tudo               | Outputs de todos os agents      | Investment research brief final     |
