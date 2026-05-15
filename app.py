@@ -6,7 +6,7 @@ from search_service import resolve_companies_to_tickers
 from finance_service import get_stock_data
 from risk_service import add_risk_analysis
 from agents import financial_agent, sentiment_agent, risk_agent, report_agent
-from report_service import generate_markdown_report
+from pdf_service import generate_pdf_report
 
 load_dotenv()
 
@@ -158,7 +158,10 @@ if run_button:
 
     st.markdown(final_report)
 
-    markdown_report = generate_markdown_report(
+    pdf_filename = "alphalens_report.pdf"
+
+    generate_pdf_report(
+        filename=pdf_filename,
         df=df,
         financial_summary=financial_summary,
         sentiment_summary=sentiment_summary,
@@ -166,12 +169,13 @@ if run_button:
         final_report=final_report
     )
 
-    st.download_button(
-        label="Download Markdown Report",
-        data=markdown_report,
-        file_name="alphalens_report.md",
-        mime="text/markdown"
-    )
+    with open(pdf_filename, "rb") as pdf_file:
+        st.download_button(
+            label="Download PDF Report",
+            data=pdf_file,
+            file_name="alphalens_report.pdf",
+            mime="application/pdf"
+        )
 
 else:
     st.info("Enter company names or tickers in the sidebar and click Generate Investment Brief.")
