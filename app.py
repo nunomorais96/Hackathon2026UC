@@ -63,7 +63,8 @@ if run_button:
 
     st.dataframe(
         resolved_companies,
-        use_container_width=True
+        use_container_width=True,
+        hide_index=True
     )
 
     tickers = [
@@ -80,73 +81,163 @@ if run_button:
         df = get_stock_data(tickers)
 
     with st.spinner("Risk Agent is calculating risk scores..."):
-        df = add_risk_analysis(df)
+        df = add_risk_analysis(
+            df,
+            profile=risk_profile,
+            horizon=horizon
+        )
 
     st.success("Agents completed the first analysis.")
 
     st.header("1. Company Comparison")
 
-    display_columns = [
+    metric_cols = st.columns(len(df))
+
+    for col, (_, row) in zip(metric_cols, df.iterrows()):
+        with col:
+            price = row.get("current_price")
+            price_text = f"${price:.2f}" if price is not None else "N/A"
+
+            st.metric(
+                label=row.get("ticker", "N/A"),
+                value=price_text,
+                delta=row.get("company_name", "")
+            )
+
+            st.caption(f"Sector: {row.get('sector', 'N/A')}")
+            st.caption(f"P/E: {row.get('pe_ratio', 'N/A')}")
+            st.caption(f"Risk: {row.get('risk_score', 'N/A')}/10")
+
+    st.subheader("Market Cap Comparison")
+
+    fig_market_cap = px.bar(
+        df,
+        x="ticker",
+        y="market_cap",
+        text="market_cap",
+        title="Market Cap by Company"
+    )
+
+    fig_market_cap.update_traces(
+        texttemplate="%{y:.2s}",
+        textposition="outside"
+    )
+
+    fig_market_cap.update_layout(
+        yaxis_title="Market Cap",
+        xaxis_title="Company"
+    )
+
+    st.plotly_chart(fig_market_cap, use_container_width=True)
+
+    st.subheader("Key Financial Metrics")
+
+    metrics_columns = [
         "ticker",
-        "company_name",
-        "sector",
-        "current_price",
-        "market_cap",
         "pe_ratio",
         "revenue_growth",
+        "profit_margin",
         "volatility",
-        "risk_score",
-        "risk_level",
+        "debt_to_equity",
     ]
 
-    available_columns = [col for col in display_columns if col in df.columns]
+    available_metrics_columns = [
+        col for col in metrics_columns
+        if col in df.columns
+    ]
 
-    st.dataframe(
-        df[available_columns],
-        use_container_width=True
+    metrics_df = df[available_metrics_columns].copy()
+
+    metrics_long = metrics_df.melt(
+        id_vars="ticker",
+        var_name="Metric",
+        value_name="Value"
     )
+
+    fig_metrics = px.bar(
+        metrics_long,
+        x="ticker",
+        y="Value",
+        color="Metric",
+        barmode="group",
+        title="Financial Metrics by Company"
+    )
+
+    fig_metrics.update_layout(
+        yaxis_title="Metric Value",
+        xaxis_title="Company"
+    )
+
+    st.plotly_chart(fig_metrics, use_container_width=True)
+
+    with st.expander("View raw company data"):
+        display_columns = [
+            "ticker",
+            "company_name",
+            "sector",
+            "current_price",
+            "market_cap",
+            "pe_ratio",
+            "revenue_growth",
+            "profit_margin",
+            "debt_to_equity",
+            "volatility",
+            "risk_score",
+            "risk_level",
+        ]
+
+        available_columns = [
+            col for col in display_columns
+            if col in df.columns
+        ]
+
+        st.dataframe(
+            df[available_columns],
+            use_container_width=True,
+            hide_index=True
+        )
 
     st.header("2. Risk Score")
 
-    fig = px.bar(
-        df,
+    risk_cols = st.columns(len(df))
+
+    for col, (_, row) in zip(risk_cols, df.iterrows()):
+        with col:
+            st.metric(
+                label=f"{row.get('ticker', 'N/A')} Risk",
+                value=f"{row.get('risk_score', 'N/A')}/10",
+                delta=row.get("risk_level", "N/A")
+            )
+            st.caption(row.get("risk_explanation", ""))
+
+    fig_risk = px.bar(
+        df.sort_values("risk_score", ascending=False),
         x="ticker",
         y="risk_score",
         color="risk_level",
-        title="Risk Score by Company",
-        text="risk_score"
+        title=f"Risk Score by Company — {risk_profile}, {horizon}",
+        text="risk_score",
+        range_y=[0, 10]
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    fig_risk.update_traces(
+        textposition="outside"
+    )
 
-    st.header("3. Agent Reasoning")
+    fig_risk.update_layout(
+        yaxis_title="Risk Score",
+        xaxis_title="Company"
+    )
 
-    with st.spinner("Financial Agent is analyzing metrics..."):
+    st.plotly_chart(fig_risk, use_container_width=True)
+
+    st.header("3. Final Investment Brief")
+
+    with st.spinner("AI Agents are generating the final investment research brief..."):
         financial_summary = financial_agent(df)
-
-    with st.spinner("News & Sentiment Agent is preparing sentiment framework..."):
         sentiment_summary = sentiment_agent(tickers)
-
-    with st.spinner("Risk Agent is explaining risk..."):
         risk_summary = risk_agent(df)
 
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        st.subheader("Financial Agent")
-        st.write(financial_summary)
-
-    with col2:
-        st.subheader("News & Sentiment Agent")
-        st.write(sentiment_summary)
-
-    with col3:
-        st.subheader("Risk Agent")
-        st.write(risk_summary)
-
-    st.header("4. Final Investment Brief")
-
-    with st.spinner("Report Agent is generating final research brief..."):
         final_report = report_agent(
             df=df,
             financial_summary=financial_summary,
