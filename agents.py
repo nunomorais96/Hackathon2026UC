@@ -97,6 +97,54 @@ Do not provide investment advice.
     return call_llm(prompt)
 
 
+def improvement_agent(
+    final_report,
+    df,
+    profile,
+    horizon
+):
+    prompt = f"""
+You are the Report Improvement Agent.
+
+Your job: produce a polished, improved version of the investment brief below
+while preserving the project's hard rules.
+
+Hard rules (NEVER violate):
+- No buy or sell recommendations
+- Educational framing only
+- Do not invent financial data — only use what's in the company comparison below
+
+Investor context:
+- Risk profile: {profile}
+- Investment horizon: {horizon}
+
+Company comparison data (the source of truth):
+{df.to_string(index=False)}
+
+Original brief to improve:
+---
+{final_report}
+---
+
+Produce the improved brief with these characteristics:
+1. Remove any buy/sell language if present
+2. Ensure all required sections are present and clearly titled:
+   - Executive Summary
+   - Company Comparison
+   - Main Risks
+   - Portfolio Fit
+   - Questions the investor should answer
+3. Explicitly reference the investor's profile ({profile}) and horizon ({horizon})
+4. Tighten language; remove filler; keep claims grounded in the data above
+5. Use markdown headings (##) and bullet points for readability
+6. End with a one-line educational disclaimer
+
+Output ONLY the improved markdown brief. Do NOT include a changelog, preamble,
+or commentary about what you changed.
+"""
+    return call_llm(prompt)
+
+
 def report_agent(
     df,
     financial_summary,

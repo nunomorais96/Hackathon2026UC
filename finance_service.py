@@ -2,6 +2,56 @@ import yfinance as yf
 import pandas as pd
 
 
+def get_price_history(tickers, period="1y"):
+    histories = {}
+
+    for ticker in tickers:
+        try:
+            stock = yf.Ticker(ticker)
+            hist = stock.history(period=period)
+
+            if hist.empty:
+                continue
+
+            frame = hist[["Close"]].copy()
+            frame = frame.reset_index()
+            frame = frame.rename(columns={"Date": "date", "Close": "close"})
+            frame["ticker"] = ticker.upper()
+
+            histories[ticker.upper()] = frame
+
+        except Exception:
+            continue
+
+    return histories
+
+
+def histories_to_long_df(histories):
+    if not histories:
+        return pd.DataFrame(columns=["date", "close", "ticker"])
+
+    return pd.concat(histories.values(), ignore_index=True)
+
+
+def normalize_histories(histories):
+    normalized = {}
+
+    for ticker, frame in histories.items():
+        if frame.empty:
+            continue
+
+        base = frame["close"].iloc[0]
+
+        if base == 0 or pd.isna(base):
+            continue
+
+        norm_frame = frame.copy()
+        norm_frame["close"] = (norm_frame["close"] / base) * 100
+        normalized[ticker] = norm_frame
+
+    return normalized
+
+
 def get_stock_data(tickers):
     results = []
 
