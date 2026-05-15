@@ -11,7 +11,6 @@ from agents import (
     report_agent,
     risk_agent,
     sentiment_agent,
-    test_agent,
 )
 from finance_service import (
     get_price_history,
@@ -46,7 +45,7 @@ HORIZON_OPTIONS = ["1 year", "3 years", "5 years", "10 years"]
 SESSION_KEYS = [
     "df", "tickers", "histories", "resolved",
     "financial_summary", "sentiment_summary", "risk_summary",
-    "final_report", "test_review", "improved_report",
+    "final_report", "improved_report",
     "run_profile", "run_horizon", "pdf_path",
 ]
 
@@ -137,19 +136,9 @@ if run_button:
             horizon=horizon
         )
 
-    with st.spinner("Test Agent is auditing the final brief..."):
-        run_fit_df = calculate_fit_scores(df, risk_profile, horizon)
-        test_review = test_agent(
-            final_report=final_report,
-            profile=risk_profile,
-            horizon=horizon,
-            fit_df=run_fit_df
-        )
-
-    with st.spinner("Improvement Agent is polishing the brief using QA feedback..."):
+    with st.spinner("Improvement Agent is polishing the brief..."):
         improved_report = improvement_agent(
             final_report=final_report,
-            test_review=test_review,
             df=df,
             profile=risk_profile,
             horizon=horizon
@@ -173,7 +162,6 @@ if run_button:
     st.session_state.sentiment_summary = sentiment_summary
     st.session_state.risk_summary = risk_summary
     st.session_state.final_report = final_report
-    st.session_state.test_review = test_review
     st.session_state.improved_report = improved_report
     st.session_state.run_profile = risk_profile
     st.session_state.run_horizon = horizon
@@ -193,7 +181,6 @@ financial_summary = st.session_state.financial_summary
 sentiment_summary = st.session_state.sentiment_summary
 risk_summary = st.session_state.risk_summary
 final_report = st.session_state.final_report
-test_review = st.session_state.test_review
 improved_report = st.session_state.improved_report
 run_profile = st.session_state.run_profile
 run_horizon = st.session_state.run_horizon
@@ -202,13 +189,12 @@ pdf_path = st.session_state.pdf_path
 fit_df = calculate_fit_scores(df, risk_profile, horizon)
 
 
-overview_tab, charts_tab, risk_tab, fit_tab, agents_tab, qa_tab, brief_tab = st.tabs([
+overview_tab, charts_tab, risk_tab, fit_tab, agents_tab, brief_tab = st.tabs([
     "📊 Overview",
     "📈 Price Charts",
     "⚠️ Risk Analysis",
     "🎯 Best Fit",
     "🤖 Agent Reasoning",
-    "🧪 QA Agent",
     "📄 Final Brief",
 ])
 
@@ -469,37 +455,11 @@ with agents_tab:
         st.write(risk_summary)
 
 
-with qa_tab:
-    st.subheader("QA / Test Agent review")
-
-    st.caption(
-        f"Automated audit of the final brief generated for "
-        f"**{run_profile}** / **{run_horizon}**. The Test Agent checks for "
-        f"buy/sell language, profile alignment, required sections, internal "
-        f"consistency, and educational framing."
-    )
-
-    verdict_line = next(
-        (line for line in test_review.splitlines() if line.upper().startswith("VERDICT:")),
-        None
-    )
-
-    if verdict_line:
-        if "PASS" in verdict_line.upper():
-            st.success(verdict_line)
-        elif "FAIL" in verdict_line.upper():
-            st.error(verdict_line)
-        else:
-            st.info(verdict_line)
-
-    st.markdown(test_review)
-
-
 with brief_tab:
     st.caption(
         f"Final brief generated for profile **{run_profile}** over **{run_horizon}**. "
-        f"Shown below is the **improved version** produced by the Improvement Agent "
-        f"using the QA Agent's feedback. The PDF download contains this same version."
+        f"Shown below is the **improved version** produced by the Improvement Agent. "
+        f"The PDF download contains this same version."
     )
 
     view = st.radio(

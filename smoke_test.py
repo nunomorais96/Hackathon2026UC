@@ -22,7 +22,6 @@ from agents import (
     report_agent,
     risk_agent,
     sentiment_agent,
-    test_agent,
 )
 from finance_service import get_price_history, get_stock_data
 from fit_service import calculate_fit_scores
@@ -157,27 +156,9 @@ def run(companies):
         + (f" (matched: {matches})" if matches else "")
     )
 
-    step("Running QA test agent")
-    review = test_agent(
-        final_report=final_report,
-        profile=PROFILE,
-        horizon=HORIZON,
-        fit_df=fit_df,
-    )
-    check(isinstance(review, str) and "VERDICT" in review.upper(),
-          "QA agent returned a structured review with a VERDICT line")
-
-    verdict_line = next(
-        (line for line in review.splitlines() if line.upper().startswith("VERDICT:")),
-        ""
-    )
-    check("FAIL" not in verdict_line.upper(),
-          f"QA agent did not fail the brief — verdict: {verdict_line.strip() or '(none)'}")
-
     step("Running Improvement Agent")
     improved = improvement_agent(
         final_report=final_report,
-        test_review=review,
         df=df,
         profile=PROFILE,
         horizon=HORIZON,
