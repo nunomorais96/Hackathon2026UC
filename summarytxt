@@ -1,0 +1,11 @@
+| Ficheiro             | Responsabilidade       | O que faz                                                                                                                         |
+| -------------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `app.py`             | Interface principal    | Cria a UI em Streamlit, recebe input do utilizador, chama os agents e serviços, mostra tabelas/gráficos e permite download do PDF |
+| `search_service.py`  | Search Agent           | Resolve nomes de empresas para tickers válidos usando `yfinance` (ex: Nvidia → NVDA)                                              |
+| `finance_service.py` | Financial Data Service | Recolhe dados financeiros públicos: preço, market cap, P/E, revenue growth, debt, profit margin, histórico e volatilidade         |
+| `risk_service.py`    | Risk Engine            | Calcula o `risk_score`, classifica risco (`Low/Medium/High`) e gera explicações de risco                                          |
+| `agents.py`          | Agentic AI Layer       | Contém os agents LLM: `financial_agent`, `sentiment_agent`, `risk_agent`, `report_agent`                                          |
+| `pdf_service.py`     | PDF Generator          | Gera o relatório PDF final com tabelas, análises dos agents e investment brief                                                    |
+| `report_service.py`  | Markdown Report        | Gera relatório Markdown como fallback ou export textual                                                                           |
+| `.env`               | Configuração local     | Guarda API keys localmente                                                                                                        |
+| `.gitignore`         | Segurança              | Impede upload de secrets e ficheiros temporários para GitHub                                                                      |
